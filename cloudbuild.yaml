@@ -1,0 +1,28 @@
+steps:
+- id: 'Terraform init'
+  name: 'hashicorp/terraform:0.12.20'
+  dir: 'terraform'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - |
+      terraform init -input=false
+      terraform workspace select scheduler-dataflow-data || terraform workspace new scheduler-dataflow-data
+      terraform apply -input=false -var=project_id=${_PROJECT_ID} -var=region=${_REGION}\
+        -var=bucket=${_BUCKET} -auto-approve
+  waitFor: ['-']
+
+- id: "Build dataflow template"
+  name: 'python:3.7'
+  dir: 'dataflow'
+  env:
+    - "PROJECT=${_PROJECT_ID}"
+    - "BUCKET=${_BUCKET}"
+    - "REGION=${_REGION}"
+  entrypoint: /bin/sh
+  args:
+    - '-c'
+    - |
+      pip install -r requirements.txt
+      ./build.sh
+  waitFor: ['Terraform init']
