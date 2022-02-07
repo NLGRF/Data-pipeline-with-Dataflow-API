@@ -1,7 +1,7 @@
 #!/bin/sh
 
 python pipeline.py \
---input data.csv \
+--input gs://${BUCKET}/data.csv \
 --output gs://${BUCKET}/output \
 --runner DataflowRunner \
 --project ${PROJECT} \
